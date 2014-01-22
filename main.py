@@ -1,21 +1,26 @@
 import benchmark
-import os
+import os, time
 
 from random import randint
 
 from urllib2 import Request, urlopen
 from cookielib import LWPCookieJar
-
+from urllib3 import PoolManager, HTTPConnectionPool 
 import requests
 
 class Benchmark_urllib2(benchmark.Benchmark):
 
-    each = 1
+    each = 10
 
     def setUp(self):
-        self.size = 50
+        ''' ''' # {{{
+        self.size = 100
         self.user_agent = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)'
-        self.prefix_url = 'http://www.google.com/search?q='
+        #self.prefix_url = 'http://www.google.com/search?q='
+        self.server_ip = '192.168.1.100'
+        self.server_port = '8011'
+        self.server_path = 'hello?q='
+        self.prefix_url = 'http://%s:%s/%s' % (self.server_ip, self.server_port, self.server_path)
         self.proxy = 'http://user-02703:2a6e7aga@31.220.11.117:1212'
 
         self.numbers = ['09%08d' % randint(10000001, 89000000) for i in xrange(self.size)]
@@ -31,6 +36,7 @@ class Benchmark_urllib2(benchmark.Benchmark):
         try:
             self.cookie_jar.load()
         except Exception:
+            print '> cookie_jar failed'
             pass
         # }}}
 
@@ -41,8 +47,24 @@ class Benchmark_urllib2(benchmark.Benchmark):
         # }}}
 
         print 'benchmarking...'
+        # }}}
 
-#    def test_urllib2(self):
+    def eachTearDown(self):
+        ''' ''' # {{{
+        t = randint(1, 2)
+        print 'sleep %d secs...' % t,
+        time.sleep(t)
+        print 'Wake up'
+        # }}}
+
+    def test_urllib2(self):
+        ''' ''' # {{{
+        for n in self.numbers:
+            response = urlopen(self.prefix_url+n)
+            l = len(response.read())
+        # }}}
+
+#    def test_urllib2_cookie(self):
 #        ''' ''' # {{{
 #        for n in self.numbers:
 #            request = Request(self.prefix_url+n)
@@ -66,10 +88,27 @@ class Benchmark_urllib2(benchmark.Benchmark):
 #            r = urllib2.urlopen(self.prefix_url+n).read()
 #        # }}}
 #
+    def test_urllib3_basic(self):
+        ''' Basic ''' # {{{
+        http = PoolManager()
+        for n in self.numbers:
+            r = http.request('GET', self.prefix_url+n)
+            l = len(r.data)
+        # }}}
+
+    def test_urllib3_connection_pool(self):
+        ''' ''' # {{{
+        http_pool = HTTPConnectionPool(self.server_ip, self.server_port)
+        for n in self.numbers:
+            r = http_pool.urlopen('GET', "/hello?q=%s" % n)
+            l = len(r.data)
+        # }}}
+    
     def test_requests(self):
         ''' ''' # {{{
         for n in self.numbers:
-            c = requests.get(self.prefix_url+n).content
+            r = requests.get(self.prefix_url+n)
+            l = len(r.content)
         # }}}
         
 #    def test_requests_proxy(self):
@@ -78,13 +117,22 @@ class Benchmark_urllib2(benchmark.Benchmark):
 #            c = requests.get(self.prefix_url+n, proxies={'http': self.proxy}).content
 #        # }}}
 #        
-    def test_requests_stream(self):
+#    def test_requests_stream(self):
+#        ''' ''' # {{{
+#        for n in self.numbers:
+#            r = requests.get(self.prefix_url+n, stream=True)
+#            l = len(r.content)
+#        # }}}
+#        
+
+    def test_requests_session(self):
         ''' ''' # {{{
+        s = requests.Session()
         for n in self.numbers:
-            c = requests.get(self.prefix_url+n, stream=True).content
+            r = s.get(self.prefix_url+n)
+            l = len(r.content)
         # }}}
         
-
 
 if __name__ == '__main__':
     benchmark.main(format="markdown", numberFormat="%.4g")

@@ -1,9 +1,6 @@
 Benchmark Report
 ================
 
-Benchmark urllib2
------------------
-
                    name | rank | runs |   mean |       sd | timesBaseline
 ------------------------|------|------|--------|----------|--------------
 urllib3 connection pool |    1 |   10 | 0.1156 | 0.006399 |           1.0
@@ -20,4 +17,4 @@ Linux-3.2.0-39-generic-x86_64 on 2014-01-22 10:20:29.
 Environment
 ================
 
-Testing Server is Nginx with HttpEchoModule.
+Testing Server is Nginx with HttpEchoModule. 

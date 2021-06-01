@@ -3,5 +3,5 @@ beautifulsoup4==4.3.2
 benchmark==0.1.5
 google==1.05
 requests==2.2.0
-urllib3==1.7.1
+urllib3==1.26.5
 wsgiref==0.1.2
